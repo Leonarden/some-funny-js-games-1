@@ -1,0 +1,437 @@
+<html>
+ 
+<head>
+    <style>
+
+        
+        
+        .startButton {
+            text-align: center;
+            font-size: 2em;
+            color: white;
+            background-color: red;
+        }
+        
+        .myShip {
+            position: absolute;
+            left: 40%;
+            bottom: 20%;
+            background-color: white;
+            width: 100px;
+            height: 20px;
+        }
+        
+        .fireme {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background-color: red;
+        }
+        
+        .hide {
+            display: none;
+        }
+        
+        .alien {
+            position: absolute;
+            display: inline-block;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 50px;
+            padding: 5px;
+            color: white;
+            background-color: blue;
+            box-shadow: 0px 1px 8px 0px black;
+            font-size: 1em;
+            text-align: center;
+            border-radius: 10px;
+        }
+        
+        .eye {
+            position: absolute;
+            width: 20px;
+            border-radius: 25%;
+            color: black;
+            height: 20px;
+            background-color: aliceblue;
+        }
+        
+        .eye::after {
+            content: "\2022";
+        }
+        
+        .mouth {
+            position: absolute;
+            width: 70%;
+            height: 2px;
+            bottom: 10px;
+            left: 10%;
+            border: 4px dotted white;
+            background-color: black;
+        }
+        
+        .topbar {
+            height: 50px;
+            width: 100%;
+            background-color: black;
+            color: white;
+            text-align: center;
+            font-size: 2em;
+        }
+        .gamecontainer {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 2em;
+            text-align: center;
+        }
+        
+        .score {
+            font-size: 1.5em;
+        }
+        .phase {
+            font-size: 1.5em;
+        }
+
+        .gamecanvas {
+            width: 80%;
+            height: 80%;
+            margin-left: 10%;
+            background-color: black;
+            overflow: hidden;
+        }
+    </style>
+</head>
+ 
+<body>
+    <div class="gamecontainer">
+    <div class="topBar"> Score : <span class="score">0</span> Phase: <span class="phase">0</span> <span class="message"></span> </div>
+    <div class="startButton">Start Game</div>
+        
+    <div class="gamecanvas">
+
+        <div class="myShip"></div>
+        <div class="fireme hide"></div>
+    </div>
+    
+    </div>
+
+    <script>
+        
+
+        class Player {
+
+            constructor(score, speed, gameOver, fire, alienSpeed,alienNum,ogameContainer) {
+                this.animFrame = null;
+                this.alienNum = alienNum;
+                this.score = score;
+                this.speed = speed;
+                this.gameContainer = ogameContainer;
+                this.keyV = {
+                    left: false,
+                    right: false
+                };
+                this.phase = 0;
+        
+                this.btn_start = this.gameContainer.querySelector(".startButton");
+                this.myShip = this.gameContainer.querySelector(".myShip");
+                this.gameArea = this.gameContainer.querySelector(".gamecanvas");
+                this.gameAreaDim = this.gameArea.getBoundingClientRect();
+                this.fireme = this.gameContainer.querySelector(".fireme");
+                this.scoreOutput = this.gameContainer.querySelector(".score");
+                this.phaseOutput = this.gameContainer.querySelector(".phase");
+                this.gameAreaDim = this.gameArea.getBoundingClientRect();
+                this.message = this.gameContainer.querySelector(".message");
+                this.init();
+                this.scoreOutput.textContent = this.score;
+                this.fireme.classList.add("hide");
+            }
+            getStoredSessionData() {
+                let storedData = sessionStorage.getItem("gameData");
+                if (storedData) {
+                    let data = JSON.parse(storedData);
+                    this.score = data.score;
+                    this.speed = data.speed;
+                    this.gameOveParam = data.gameOver;
+                    this.fire = data.fire;
+                    this.alienSpeed = data.alienSpeed;
+                    this.alienNum = data.alienNum;
+                    this.phase = data.phase;
+                    this.gameContainer.style.setProperty("--alienSpeed", this.alienSpeed + "px");
+                }
+            }
+            setStoredSessionData() {
+                let data = {
+                    score: this.score,
+                    speed: this.speed,
+                    gameOver: this.gameOverParam,
+                    fire: this.fire,
+                    alienSpeed: this.alienSpeed,
+                    alienNum: this.alienNum,
+                    phase: this.phase
+                };
+                sessionStorage.setItem("gameData", JSON.stringify(data));
+            }
+            updateGameParams() {
+                this.phase++;
+                this.alienSpeed = this.alienSpeed + (this.phase);
+                this.alienNum = this.alienNum + (this.phase);
+      
+                this.gameOverParam = false;
+                this.fire = false;
+            }
+            setUpGameArea() {
+               this.scoreOutput.textContent = this.score;
+                this.phaseOutput.textContent = this.phase;
+                /* setup game area */
+               this.scoreOutput.textContent = this.score;
+                this.gameContainer.style.setProperty("--alienWidth", (this.gameAreaDim.width / 10) + "px");
+                this.gameContainer.style.setProperty("--alienHeight", (this.gameAreaDim.height / 10) + "px");
+                this.gameContainer.style.setProperty("--gameLeft", this.gameAreaDim.left + "px");
+                this.gameContainer.style.setProperty("--gameRight", this.gameAreaDim.right + "px");
+
+                this.gameContainer.style.setProperty("--gameWidth", this.gameAreaDim.width + "px");
+                this.gameContainer.style.setProperty("--gameHeight", this.gameAreaDim.height + "px");
+                this.gameContainer.style.setProperty("--alienSpeed", this.alienSpeed + "px");
+                this.gameContainer.style.setProperty("--alienWidth", (this.gameAreaDim.width / 10) + "px");
+                this.gameContainer.style.setProperty("--alienHeight", (this.gameAreaDim.height / 10) + "px");
+               
+                /*setup events */
+               
+                /*this.gameArea.addEventListener("click", this.startGame.bind(this));*/
+                this.gameContainer.addEventListener("keydown", this.mkeyDown.bind(this));
+                this.gameContainer.addEventListener("keyup", this.mkeyUp.bind(this));    
+                
+                this.gameContainer.addEventListener("mousemove", this.mouseMove.bind(this));
+                /*
+                this.gameArea.addEventListener("touchmove", this.touchMove.bind(this));
+                this.gameArea.addEventListener("touchend", this.touchEnd.bind(this));
+                this.gameArea.addEventListener("touchstart", this.touchStart.bind(this));
+                this.gameArea.addEventListener("mousedown", this.mouseDown.bind(this));
+                */
+            
+                this.setupAliens(this.alienNum);
+            }
+            mkeyDown(e) {
+                let key = e.keyCode;
+                if (key === 37) {
+                    this.keyV.left = true;
+                }
+                else if (key === 39) {
+                    this.keyV.right = true;
+                }
+                else if (key === 38 || key === 32) {
+                    if (!this.fire) {
+                        this.addShoot();
+                    }
+                }
+            }
+            mkeyUp(e) {
+                let key = e.keyCode;
+                if (key === 37) {
+                    this.keyV.left = false;
+                }
+                else if (key === 39) {
+                    this.keyV.right = false;
+                }
+            }
+            mouseMove(e) {
+                let tempPos = e.clientX - this.gameAreaDim.left;
+                if (tempPos > this.gameAreaDim.left && tempPos < this.gameAreaDim.right) {
+                    this.myShip.style.left = tempPos + "px";
+                }
+            }
+            reset() {
+                this.getStoredSessionData();
+                this.updateGameParams();
+                
+            }
+            init() {
+                
+                this.reset();
+                this.setUpGameArea();
+                /*this.btn_start.style.display = "none";*/
+                this.btn_start.classList.add("hide");    
+                this.animFrame = requestAnimationFrame(this.update.bind(this));
+            
+            }
+
+            gameOver() {
+                this.btn_start.style.display = "block";
+                this.btn_start.innerHTML = "Restart New Game";
+                this.fire = true;
+                this.fireme.classList.add("hide");
+                this.fireme.ypos = this.gameAreaDim.height + 100;
+                this.gameOverParam = true;
+                this.setStoredSessionData();
+                this.clearAliens();
+            }
+        
+            clearAliens() {
+                let tempAliens = this.gameArea.querySelectorAll(".alien");
+                for (let x = 0; x < tempAliens.length; x++) {
+                    tempAliens[x].parentNode.removeChild(tempAliens[x]);
+                }
+            }
+            setupAliens(num) {
+                let tempWidth = 70;
+                let lastCol = this.gameAreaDim.width - tempWidth;
+                let row = {
+                    x: this.gameAreaDim.left + 50,
+                    y: 50
+                }
+                for (let x = 0; x < num; x++) {
+                    if (row.x > (lastCol - tempWidth)) {
+                        row.y += 70;
+                        row.x = this.gameAreaDim.left + 50
+                    }
+                    this.alienMaker(row, tempWidth);
+                    row.x += tempWidth + 20;
+                }
+            }
+        
+            randomColor() {
+                return "#" + Math.random().toString(16).substr(-6);
+            }
+        
+            alienMaker(row, tempWidth) {
+                if (row.y > (this.gameAreaDim.height - 200)) {
+                    return;
+                }
+                let div = document.createElement("div");
+                div.classList.add("alien");
+                div.style.backgroundColor = this.randomColor();
+                let eye1 = document.createElement("span");
+                eye1.classList.add("eye");
+                eye1.style.left = "10px";
+                div.appendChild(eye1);
+                let eye2 = document.createElement("span");
+                eye2.classList.add("eye");
+                eye2.style.right = "10px";
+                div.appendChild(eye2);
+                let mouth = document.createElement("span");
+                mouth.classList.add("mouth");
+                div.appendChild(mouth);
+                div.style.width = tempWidth + "px";
+                div.xpos = Math.floor(row.x);
+                div.ypos = Math.floor(row.y);
+                div.style.left = div.xpos + "px";
+                div.style.top = div.ypos + "px";
+                div.directionMove = 1;
+                this.gameArea.appendChild(div);
+            }
+            addShoot() {
+                this.fire = true;
+                this.fireme.classList.remove("hide");
+                this.fireme.xpos = (this.myShip.offsetLeft + (this.myShip.offsetWidth / 2));
+                this.fireme.ypos = this.myShip.offsetTop - 10;
+                this.fireme.style.left = this.fireme.xpos + "px";
+                this.fireme.style.top = this.fireme.ypos + "px";
+            }
+            isCollide(a, b) {
+                let aRect = a.getBoundingClientRect();
+                let bRect = b.getBoundingClientRect();
+                return !(
+                    (aRect.bottom < bRect.top) || (aRect.top > bRect.bottom) || (aRect.right < bRect.left) || (aRect.left > bRect.right))
+            }
+            messageOutput(mes) {
+                this.message.innerHTML = mes;
+            }
+            update() {
+                if (!this.gameOverParam) {
+                    let tempAliens = this.gameArea.querySelectorAll(".alien");
+                    if (tempAliens.length == 0) {
+                        this.gameOverParam = true;
+                        this.messageOutput("You Won");
+                        this.gameOver();
+                    }
+                    for (let x = tempAliens.length - 1; x > -1; x--) {
+                        let el = tempAliens[x];
+                        if (this.isCollide(el, this.fireme)) {
+                            this.messageOutput("HIT");
+                           this.alienSpeed++;
+                            this.score++;
+                            this.scoreOutput.textContent = this.score;
+                            this.fire = false;
+                            this.fireme.classList.add("hide");
+                           if(el.parentNode) {
+                                el.parentNode.removeChild(el);
+                            }
+                            
+                            this.fireme.ypos = this.gameAreaDim.height + 100;
+                        }
+                        if (el.xpos > (this.gameAreaDim.width - el.offsetWidth) || el.xpos < this.gameAreaDim.left) {
+                            el.directionMove *= -1;
+                            el.ypos += 40;
+                            if (el.ypos > (this.myShip.offsetTop - 50)) {
+                                this.messageOutput("Game Over");
+                                this.gameOverParm = true;
+                                this.gameOver();
+                            }
+                        }
+                        el.xpos += (this.alienSpeed * el.directionMove);
+                        el.style.left = el.xpos + "px";
+                        el.style.top = el.ypos + "px";
+                    }
+                    let tempPos = this.myShip.offsetLeft;
+                    if (this.fire) {
+                        if (this.fireme.ypos > 0) {
+                            this.fireme.ypos -= 15;
+                            this.fireme.style.top = this.fireme.ypos + "px";
+                        }
+                        else {
+                            this.fire = false;
+                            this.fireme.classList.add("hide");
+                            this.fireme.ypos = this.gameAreaDim.height + 100;
+                        }
+                    }
+                    if (this.keyV.left && tempPos > this.gameAreaDim.left) {
+                        tempPos -= this.speed;
+                    }
+                    if (this.keyV.right && (tempPos + this.myShip.offsetWidth) < this.gameAreaDim.right) {
+                        tempPos += this.speed;
+                    }
+                    this.myShip.style.left = tempPos + "px";
+                    this.animFrame = requestAnimationFrame(this.update.bind(this));
+                }
+            }
+
+        } /* end of player class */
+       
+        document.addEventListener("DOMContentLoaded", function () {
+            
+            
+            let gameContainer = document.querySelector(".gamecontainer");
+            let btn_start = gameContainer.querySelector(".startButton");
+            btn_start.classList.remove("hide");
+            btn_start.innerHTML = "Start Game";
+            btn_start.addEventListener("click", startGame);
+            let players = [];
+            let player = null; 
+         
+            function startGame(){
+                let player = new Player(0, 2, false, false, 5, 6, gameContainer);
+                players.push(player);
+
+            }
+        
+        });
+        
+
+    </script>
+</body>
+ 
+</html>
