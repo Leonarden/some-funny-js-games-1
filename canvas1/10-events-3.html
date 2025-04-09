@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to YouGame!</title>
+
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to YouGame!</h1>
+        <p>Click on the links below to play games</p>
+        <ul>
+            <li><a href="events-1.html">Canvas Mouse Click Event</a></li>
+            <li><a href="events-2.html">Canvas Mouse Move Event</a></li>
+            
+        </ul>
+    <div style="text-align: center;">
+        <h1>Draw on the canvas by moving the mouse</h1>
+        <p>Click and hold the mouse button to draw</p>
+    <canvas id="myCanvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
+    </div>
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        canvas.addEventListener('mousedown', () => drawing = true);
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mousemove', draw);
+
+        function draw(event) {
+            if (!drawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(x, y, 2, 2);
+        }
+    </script>
+</body>
+</html>
