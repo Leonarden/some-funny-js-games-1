@@ -9,9 +9,16 @@
             text-align: center;
             font-size: 2em;
             color: white;
-            background-color: red;
+            background-color: green;
+            padding: 10px;
         }
-        
+        .resetButton {
+            text-align: center;
+            font-size: 1.5em;
+            color: white;
+            background-color: red;
+            padding: 10px;
+        }
         .myShip {
             position: absolute;
             left: 40%;
@@ -120,6 +127,7 @@
     <div class="gamecontainer">
     <div class="topBar"> Score : <span class="score">0</span> Phase: <span class="phase">0</span> <span class="message"></span> </div>
     <div class="startButton">Start Game</div>
+    <div class="resetButton hide">Reset Game ?</div>
         
     <div class="gamecanvas">
 
@@ -145,8 +153,13 @@
                     right: false
                 };
                 this.phase = 0;
-        
+                /*
+                this.gameOverParam takes values 0: game is on, 1: game over loose, 2: game over win. 
+                */
+               this.gameOverParam = gameOver; /*defaults to play game*/
+                this.fire = fire; /*defaults to not firing*/
                 this.btn_start = this.gameContainer.querySelector(".startButton");
+                this.btn_reset = this.gameContainer.querySelector(".resetButton");
                 this.myShip = this.gameContainer.querySelector(".myShip");
                 this.gameArea = this.gameContainer.querySelector(".gamecanvas");
                 this.gameAreaDim = this.gameArea.getBoundingClientRect();
@@ -161,7 +174,9 @@
              
             }
             getStoredSessionData() {
+          
                 let storedData = sessionStorage.getItem("gameData");
+          
                 if (storedData) {
                     let data = JSON.parse(storedData);
                     this.score = data.score;
@@ -187,15 +202,28 @@
                 sessionStorage.setItem("gameData", JSON.stringify(data));
             }
             updateGameParams() {
-                this.phase++;
-                this.alienSpeed = this.alienSpeed + (this.phase);
-                this.alienNum = this.alienNum + (this.phase);
+               
+                if( this.gameOveParam==2){ /*game over player won then update phase*/
+                    this.phase++;
+                    this.alienSpeed = this.alienSpeed + Math.floor((this.phase)/2);
+                  this.alienNum = this.alienNum + Math.floor((this.phase)/2);
       
-                this.gameOverParam = false;
-                this.fire = false;
+                }
+                else if(this.gameOverParam==1){ /*game over player lost then reset phase*/
+                    this.phase = 0;
+                    this.alienSpeed = 5;
+                    this.alienNum = 6;
+                }
+                this.score = 0;
+               
+                this.gameOverParam = 0; /* game is on */
+                this.fire = true; /*  firing */
+                this.fireme.classList.add("hide");
+          
             }
             setUpGameArea() {
-               this.scoreOutput.textContent = this.score;
+               
+                this.scoreOutput.textContent = this.score;
                 this.phaseOutput.textContent = this.phase;
                 /* setup game area */
                this.scoreOutput.textContent = this.score;
@@ -212,7 +240,6 @@
                
                 /*setup events */
                
-                /*this.gameArea.addEventListener("click", this.startGame.bind(this));*/
                 this.gameContainer.addEventListener("keydown", this.mkeyDown.bind(this));
                 this.gameContainer.addEventListener("keyup", this.mkeyUp.bind(this));    
                 
@@ -221,16 +248,75 @@
                 this.gameContainer.addEventListener("touchend", this.mouseMove.bind(this));
                 this.gameContainer.addEventListener("touchstart", this.mouseMove.bind(this));
                 this.gameContainer.addEventListener("mousedown", this.mouseDown.bind(this));
-                /*
-                this.gameArea.addEventListener("touchmove", this.touchMove.bind(this));
-                this.gameArea.addEventListener("touchend", this.touchEnd.bind(this));
-                this.gameArea.addEventListener("touchstart", this.touchStart.bind(this));
-                this.gameArea.addEventListener("mousedown", this.mouseDown.bind(this));
-                */
-            
+               this.btn_start.addEventListener("click", this.mStart.bind(this));
+               this.btn_reset.addEventListener("click", this.mResetGameConfirm.bind(this));
+              
                 this.setupAliens(this.alienNum);
             }
-
+            mResetGame() {
+                this.btn_reset.classList.add("hide");
+                this.btn_start.classList.remove("hide");
+                this.btn_start.style.display = "block";
+                this.btn_start.innerHTML = "Start Game";
+                this.fire = true;
+                this.fireme.classList.add("hide");
+                this.fireme.ypos = this.gameAreaDim.height + 100;
+                this.gameOverParam = 0; /* game is on */
+                let removeYes = this.btn_reset.querySelector("div input[name='reset']");
+                if(removeYes.checked) {/* we reset game by clearingSome data*/ 
+                    this.btn_reset.removeChild(removeYes.parentNode);
+                    this.clearStoredSessionData();
+                    console.log("Aliens: cleared session data");
+                }
+                this.clearAliens();
+                this.btn_reset.classList.add("hide");
+                this.btn_start.style.display = "block";
+                this.btn_start.innerHTML = "Start Game";
+                this.btn_start.classList.add("hide");
+              
+                this.fire = true;
+                this.init();
+               
+            }    
+            mResetGameConfirm() {
+                this.btn_reset.classList.remove("hide");
+                this.btn_reset.innerHTML = "<span> Reset Game Sure?   </span>";
+               let elemDiv = document.createElement("div");
+               let elemCheck = document.createElement("input");
+                elemCheck.type = "checkbox";
+                elemCheck.name = "reset";
+                elemCheck.value = "yes";
+                elemCheck.id = "reset";
+                elemCheck.style.marginLeft = "10px";
+                elemCheck.addEventListener("click", function() {
+                    if (elemCheck.checked) {
+                        elemDiv.style.color = "green";
+                    } else {
+                        elemDiv.style.color = "white";
+                    }
+                });
+                elemDiv.appendChild(elemCheck);
+                elemDiv.style.color = "white";
+                this.btn_reset.appendChild(elemDiv);
+                this.btn_reset.addEventListener("click", this.mResetGame.bind(this));
+                this.btn_reset.removeEventListener("click", this.mResetGameConfirm.bind(this));
+            
+            }
+            
+            clearStoredSessionData() {
+                sessionStorage.removeItem("gameData");
+            }
+            mStart() {
+               /* this.btn_start.classList.add("hide");*/
+                this.btn_reset.classList.remove("hide");
+                this.btn_reset.innerHTML = "Reset Game?";
+                this.fire = true;
+                this.fireme.classList.add("hide");
+                this.fireme.ypos = this.gameAreaDim.height + 100;
+                this.gameOverParam = 0; /* game is on */
+                this.setStoredSessionData();
+                this.clearAliens();
+            }
             mkeyDown(e) {
                 let key = e.keyCode;
                 if (key === 37) {
@@ -273,6 +359,7 @@
             }
 
             reset() {
+                this.btn_start.classList.remove("hide");
                 this.getStoredSessionData();
                 this.updateGameParams();
                 
@@ -283,7 +370,8 @@
                 this.reset();
                 this.setUpGameArea();
                 /*this.btn_start.style.display = "none";*/
-                this.btn_start.classList.add("hide");    
+                this.btn_start.classList.add("hide");  
+                this.btn_reset.classList.add("hide");  
                 this.animFrame = requestAnimationFrame(this.update.bind(this));
             
             }
@@ -295,7 +383,7 @@
                 this.fire = true;
                 this.fireme.classList.add("hide");
                 this.fireme.ypos = this.gameAreaDim.height + 100;
-                this.gameOverParam = true;
+                /*this.gameOverParam = 0;*/ /* game is on */
                 this.setStoredSessionData();
                 this.clearAliens();
             
@@ -377,19 +465,38 @@
             }
             
             update() {
-                if (!this.gameOverParam) {
+                if (this.gameOverParam==0) { /* game is on */   
+
+          
                     let tempAliens = this.gameArea.querySelectorAll(".alien");
+          
                     if (tempAliens.length == 0) {
-                        this.gameOverParam = true;
+          
+                        this.gameOverParam = 2; /* game over player won */
+
                         this.messageOutput("You Won");
+          
                         this.gameOver();
+          
                     }
                     for (let x = tempAliens.length - 1; x > -1; x--) {
                         let el = tempAliens[x];
                         if (this.isCollide(el, this.fireme)) {
                             this.messageOutput("HIT");
-                           this.alienSpeed++;
-                            this.score++;
+                            let ran = Math.floor(Math.random() * 100) + 1;
+                            if(ran < 50) {
+                                this.fireme.style.backgroundColor = "green";
+                            }
+                            else {
+                                this.fireme.style.backgroundColor = "red";
+                            }
+                            this.fireme.classList.add("hide");
+                            
+                            if(ran%2==0) {
+                                this.alienSpeed++; /* increase speed of aliens */
+                            }
+                           
+                           this.score++;
                             this.scoreOutput.textContent = this.score;
                             this.fire = false;
                             this.fireme.classList.add("hide");
@@ -404,7 +511,7 @@
                             el.ypos += 40;
                             if (el.ypos > (this.myShip.offsetTop - 50)) {
                                 this.messageOutput("Game Over");
-                                this.gameOverParm = true;
+                                this.gameOverParm = 1; /* game over player loses */
                                 this.gameOver();
                             }
                         }
@@ -431,6 +538,7 @@
                         tempPos += this.speed;
                     }
                     this.myShip.style.left = tempPos + "px";
+                    
                     this.animFrame = requestAnimationFrame(this.update.bind(this));
                 }
             }
@@ -449,7 +557,12 @@
             let player = null; 
          
             function startGame(){
-                let player = new Player(0, 2, false, true, 5, 6, gameContainer);
+                let gameOver = 0; /* game is on */
+                let speed = 1;
+                let alienSpeed = 3; /* speed of aliens */
+                let alienNum = 8; /* number of aliens */
+                let fire = true; /*  firing */
+                let player = new Player(0, speed, gameOver, fire, alienSpeed, alienNum, gameContainer);
                 players.push(player);
 
             }
