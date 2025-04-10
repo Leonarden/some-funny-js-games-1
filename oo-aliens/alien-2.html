@@ -155,9 +155,10 @@
                 this.phaseOutput = this.gameContainer.querySelector(".phase");
                 this.gameAreaDim = this.gameArea.getBoundingClientRect();
                 this.message = this.gameContainer.querySelector(".message");
-                this.init();
                 this.scoreOutput.textContent = this.score;
                 this.fireme.classList.add("hide");
+                this.init();
+             
             }
             getStoredSessionData() {
                 let storedData = sessionStorage.getItem("gameData");
@@ -216,6 +217,10 @@
                 this.gameContainer.addEventListener("keyup", this.mkeyUp.bind(this));    
                 
                 this.gameContainer.addEventListener("mousemove", this.mouseMove.bind(this));
+                this.gameContainer.addEventListener("touchmove", this.mouseMove.bind(this));
+                this.gameContainer.addEventListener("touchend", this.mouseMove.bind(this));
+                this.gameContainer.addEventListener("touchstart", this.mouseMove.bind(this));
+                this.gameContainer.addEventListener("mousedown", this.mouseDown.bind(this));
                 /*
                 this.gameArea.addEventListener("touchmove", this.touchMove.bind(this));
                 this.gameArea.addEventListener("touchend", this.touchEnd.bind(this));
@@ -225,6 +230,7 @@
             
                 this.setupAliens(this.alienNum);
             }
+
             mkeyDown(e) {
                 let key = e.keyCode;
                 if (key === 37) {
@@ -248,17 +254,30 @@
                     this.keyV.right = false;
                 }
             }
+            
+            mouseDown(e) {
+                if (!this.fire) {
+                    this.addShoot();
+                }
+            }
+            touchStart(e) {
+                if (!this.fire) {
+                    this.addShoot();
+                }
+            }
             mouseMove(e) {
                 let tempPos = e.clientX - this.gameAreaDim.left;
                 if (tempPos > this.gameAreaDim.left && tempPos < this.gameAreaDim.right) {
                     this.myShip.style.left = tempPos + "px";
                 }
             }
+
             reset() {
                 this.getStoredSessionData();
                 this.updateGameParams();
                 
             }
+            
             init() {
                 
                 this.reset();
@@ -270,6 +289,7 @@
             }
 
             gameOver() {
+            
                 this.btn_start.style.display = "block";
                 this.btn_start.innerHTML = "Restart New Game";
                 this.fire = true;
@@ -278,6 +298,7 @@
                 this.gameOverParam = true;
                 this.setStoredSessionData();
                 this.clearAliens();
+            
             }
         
             clearAliens() {
@@ -286,6 +307,7 @@
                     tempAliens[x].parentNode.removeChild(tempAliens[x]);
                 }
             }
+            
             setupAliens(num) {
                 let tempWidth = 70;
                 let lastCol = this.gameAreaDim.width - tempWidth;
@@ -333,6 +355,7 @@
                 div.directionMove = 1;
                 this.gameArea.appendChild(div);
             }
+            
             addShoot() {
                 this.fire = true;
                 this.fireme.classList.remove("hide");
@@ -341,15 +364,18 @@
                 this.fireme.style.left = this.fireme.xpos + "px";
                 this.fireme.style.top = this.fireme.ypos + "px";
             }
+            
             isCollide(a, b) {
                 let aRect = a.getBoundingClientRect();
                 let bRect = b.getBoundingClientRect();
                 return !(
                     (aRect.bottom < bRect.top) || (aRect.top > bRect.bottom) || (aRect.right < bRect.left) || (aRect.left > bRect.right))
             }
+            
             messageOutput(mes) {
                 this.message.innerHTML = mes;
             }
+            
             update() {
                 if (!this.gameOverParam) {
                     let tempAliens = this.gameArea.querySelectorAll(".alien");
@@ -423,11 +449,12 @@
             let player = null; 
          
             function startGame(){
-                let player = new Player(0, 2, false, false, 5, 6, gameContainer);
+                let player = new Player(0, 2, false, true, 5, 6, gameContainer);
                 players.push(player);
 
             }
         
+
         });
         
 
