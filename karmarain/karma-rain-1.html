@@ -1,0 +1,205 @@
+<!--
+
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karma Rain</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #1e1e2f;
+      background-image: url('pic/sky-night-stars-1.png');
+      background-attachment: fixed;
+      background-size: cover;  
+    }
+    .raindrop {
+      position: absolute;
+     
+      background-color: #1e1e2f;
+      border-radius: 30%;
+    }
+    .controls-button1, .controls-button2 {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+    }
+    .controls-button1:hover, .controls-button2:hover {
+      background-color: #45a049;
+    }
+    #bottom-control-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
+    }
+    .decorated-word {
+      color: white;
+      font-weight: bold;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+ <div id="bottom-control-panel">
+    <div id="bottom-control-panel-content">
+      <div id="bottom-control-panel-content-form">
+        <form name="form-controls-0">
+        <center>
+            <button class="controls-button1">Start/Stop Rain</button>
+            <hr/>
+            <div class="controls-input-word-1"><!-- this div will become red when word is in list-->
+            <input type="text" name="word" placeholder="Enter a word" required>
+             </div>
+            <button class="controls-button2">Add a word to the rain</button>
+            <!--
+        Further controls like: 
+        Add a word to the rain (e.g. : "Respect", "Forgiveness", "Love", "Peace", "Kindness", "Compassion", "Joy", "Happiness", "Hope", "Courage", "Strength", "Wisdom", "Gratitude", "Empathy", "Unity", "Harmony")    
+        Note: Code will validate the word if not in the list.
+        
+        
+        -->
+        </center>
+        </form>
+    </div>
+    </div>
+  </div>  
+  <script>
+   /*
+   */
+    // Harmonic Rain Effect
+    let rainInterval = 2000; // Interval for raindrop creation (in milliseconds)
+    const rain_words_base = ["Respect", "Forgiveness", "Love", "Peace", "Kindness", "Compassion", "Joy", "Happiness", "Hope", "Courage", "Strength", "Wisdom", "Gratitude", "Empathy", "Unity", "Harmony"];
+    let rain_words = [...rain_words_base]; // Copy of the base words for the rain effect
+    const form = document.forms['form-controls-0'];
+    const controlsButton1 = form.querySelector('.controls-button1');
+    const controlsButton2 = form.querySelector('.controls-button2');
+    const wordInput = form.elements['word'];
+    const DEFAULTWORDS = ["Respect", "Forgiveness", "Love", "Peace", "Kindness", "Compassion", "Joy", "Happiness", "Hope", "Courage", "Strength", "Wisdom", "Gratitude", "Empathy", "Unity", "Harmony"];
+    let rInterval = null;
+    // Function to initialize the rain effect with base words
+    const initializeRain = () => {
+      // Initialize the rain effect with the base words
+      rain_words.forEach(word => {
+        createRaindrop(word);
+      });
+    };
+    // Function to start/stop the rain effect
+    const toggleRain = () => {
+      if (rain_words.length > 0) {
+        // If rain is already happening, stop it
+        clearInterval(rInterval);
+        rain_words = []; // Clear the words to stop the rain
+      } else {
+        // Start the rain effect
+        doRain();
+      }
+    };
+    //decorate Word is a function with a word as input and a element Span with the word as output, it will be to applya class to the word
+    const decorateWord = (word) => {
+      const span = document.createElement('span');
+      span.textContent = word;
+      span.classList.add('decorated-word');
+      return span;
+    };
+    // Function to create a raindrop
+   const createRaindrop = (inputWord) => {
+      
+      inputWord = inputWord || DEFAULTWORDS[Math.floor(Math.random() * DEFAULTWORDS.length)];
+      const raindrop = document.createElement('div');
+      raindrop.classList.add('raindrop');
+        raindrop.style.backgroundColor = '#4caf50'; // Default color
+        raindrop.style.color = 'white'; // Text color
+        raindrop.style.fontSize = '16px'; // Font size
+        raindrop.style.display = 'flex';
+        raindrop.style.alignItems = 'center';
+        raindrop.style.justifyContent = 'center';
+        raindrop.innerHTML = decorateWord(inputWord).outerHTML; // Set the word as inner HTML
+        raindrop.style.position = 'absolute';
+      raindrop.style.left = `${Math.random() * window.innerWidth}px`;
+      raindrop.style.top = `0px`; // Start from the top
+      
+      document.body.appendChild(raindrop);
+
+      const startX = Math.random() * window.innerWidth;
+      const amplitude = Math.random() * 100 + 50; // Wave amplitude
+      const frequency = Math.random() * 0.05 + 0.02; // Wave frequency
+      const speed = Math.random() * 2 + 1; // Falling speed
+      let y = 0;
+
+      const animate = () => {
+   
+        y += speed;
+        const x = startX + amplitude * Math.sin(frequency * y); // Harmonic motion
+        raindrop.style.transform = `translate(${x}px, ${y}px)`;
+
+        if (y < window.innerHeight) {
+          requestAnimationFrame(animate);
+        } else {
+          raindrop.remove(); // Remove raindrop when it exits the screen
+        }
+   
+      };
+
+      animate();
+   
+    };
+
+    controlsButton1.addEventListener('click', (event) => {
+      event.preventDefault();
+      toggleRain();
+    });
+
+    controlsButton2.addEventListener('click', (event) => {
+        setMoreRain(event);
+    });
+
+    const setMoreRain = (event) => {
+      event.preventDefault();
+      const inputWord = wordInput.value.trim();
+      if (inputWord && !rain_words.includes(inputWord)) {
+        rain_words.push(inputWord);
+        wordInput.value = ''; // Clear input field
+      } else {
+        alert("Please enter a unique word.");
+      
+        }
+    };
+
+    const doRain = () => {
+      rInterval =   setInterval(() => {
+            const numDrops = Math.floor(Math.random() * 5) + 1; // Random number of raindrops
+            for (let i = 0; i < numDrops; i++) {
+            const inputWord = rain_words[Math.floor(Math.random() * rain_words.length)];
+            createRaindrop(inputWord);
+            }//for
+      
+            }, rainInterval); // Adjust interval for density of raindrops
+
+        };
+    
+    
+
+    document.addEventListener('DOMContentLoaded', () => {       
+       //initializeRain();
+        // Start the rain effect
+        doRain();        
+        form.addEventListener('submit', setMoreRain);
+    });
+        
+    </script>
+</body>
+</html>
